@@ -25,6 +25,15 @@ const Register = () => {
     setError('');
     setLoading(true);
 
+    // Client-side password policy check to match backend expectations
+    const pwd = formData.password || '';
+    const pwdRule = /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{6,}/;
+    if (!pwdRule.test(pwd)) {
+      setError('Password should include uppercase, lowercase, a number, and a symbol.');
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await authAPI.register(formData);
       localStorage.setItem('token', response.data.token);

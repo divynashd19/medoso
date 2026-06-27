@@ -40,10 +40,16 @@ A full-stack web application for managing appointments with support for multiple
 ### Backend
 - **Runtime**: Node.js
 - **Framework**: Express.js
-- **Database**: MongoDB with Mongoose ODM
+### Database
+- **Primary**: Supabase (PostgreSQL)
+- **Alternative**: MongoDB with Mongoose ODM
 - **Authentication**: JWT (JSON Web Tokens)
 - **Security**: bcryptjs for password hashing
 - **Validation**: express-validator
+   - `REACT_APP_API_URL` — URL to your backend API (e.g. `https://my-api.example.com/api`).
+
+   - `NETLIFY_AUTH_TOKEN` — a personal access token from Netlify (User settings → Applications → Personal access tokens).
+   - `NETLIFY_SITE_ID` — your Netlify Site ID (Site settings → Site information).
 
 ### Frontend
 - **Library**: React 18+
@@ -60,6 +66,11 @@ Online Appointment Booking System/
 │   ├── models/
 │   │   ├── User.js           # User schema (patient, doctor, admin)
 │   │   ├── Appointment.js    # Appointment schema
+
+### Single-page app routing on Netlify
+
+The included `netlify.toml` ensures SPA routing works by redirecting all unmatched routes to `index.html`.
+
 │   │   ├── Availability.js   # Doctor availability schema
 │   │   └── Reminder.js       # Reminder schema
 │   ├── controllers/
@@ -124,12 +135,18 @@ Online Appointment Booking System/
    npm install
    ```
 
-3. Create a `.env` file from the example:
+3. Set up Supabase:
+   - Go to https://supabase.com and create a free account
+   - Create a new project
+   - Go to Settings > API to get your Project URL and anon key
+   - Go to SQL Editor and run the schema from `backend/database_schema.sql`
+
+4. Create a `.env` file from the example:
    ```bash
    cp .env.example .env
    ```
 
-4. Update `.env` with your MongoDB URI and other configurations
+5. Update `.env` with your Supabase credentials
 
 ### Frontend Setup
 
@@ -152,8 +169,9 @@ Online Appointment Booking System/
 Create a `.env` file in the backend directory with the following variables:
 
 ```env
-# MongoDB Configuration
-MONGODB_URI=mongodb://localhost:27017/appointment_booking
+# Supabase Configuration
+SUPABASE_URL=your-supabase-project-url
+SUPABASE_ANON_KEY=your-supabase-anon-key
 
 # Server Configuration
 PORT=5000
