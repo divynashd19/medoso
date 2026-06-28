@@ -31,6 +31,7 @@ export const appointmentAPI = {
   getDoctorAppointments: () => api.get('/appointments/doctor/appointments'),
   getAppointment: (id) => api.get(`/appointments/${id}`),
   updateStatus: (id, status) => api.put(`/appointments/${id}/status`, { status }),
+  updateAppointmentStatus: (id, status) => api.put(`/appointments/${id}/status`, { status }),
   cancelAppointment: (id) => api.patch(`/appointments/${id}/cancel`),
 };
 
@@ -38,6 +39,8 @@ export const appointmentAPI = {
 export const availabilityAPI = {
   setAvailability: (data) => api.post('/availability', data),
   getDoctorAvailability: (doctorId) => api.get(`/availability/${doctorId}`),
+  getMyAvailability: () => api.get('/availability/my'),
+  addAvailability: (data) => api.post('/availability', data),
   updateAvailability: (id, data) => api.put(`/availability/${id}`, data),
   deleteAvailability: (id) => api.delete(`/availability/${id}`),
 };

@@ -4,7 +4,7 @@
 This is a full-stack appointment booking system with:
 - **Backend**: Node.js/Express REST API
 - **Frontend**: React single-page application
-- **Database**: MongoDB with Mongoose ODM
+- **Database**: Supabase (PostgreSQL) or MongoDB with Mongoose ODM
 - **Features**: User authentication, appointment scheduling, availability management, reminders
 
 ## Tech Stack
@@ -27,7 +27,7 @@ This is a full-stack appointment booking system with:
 2. Frontend uses component-based architecture with hooks
 3. Environment variables must be stored in .env files
 4. API endpoints follow RESTful conventions
-5. Database collections: Users, Appointments, Availability, Reminders
+5. Database tables: users, appointments, availability, reminders
 
 ## Dependencies to Install
 - Backend: express, mongoose, dotenv, bcryptjs, jsonwebtoken, cors, nodemon

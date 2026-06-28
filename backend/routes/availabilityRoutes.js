@@ -6,6 +6,9 @@ const { authenticate, authorize } = require('../middleware/auth');
 // Set Availability (Doctors only)
 router.post('/', authenticate, authorize(['doctor']), availabilityController.setAvailability);
 
+// Get My Availability (Doctors only)
+router.get('/my', authenticate, authorize(['doctor']), availabilityController.getMyAvailability);
+
 // Get Doctor Availability
 router.get('/:doctorId', availabilityController.getDoctorAvailability);
 

@@ -16,7 +16,13 @@ const ProtectedRoute = ({ children }) => {
     setLoading(false);
   }, [navigate]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) {
+    return (
+      <div className="loading-spinner">
+        <div className="spinner" />
+      </div>
+    );
+  }
 
   return isAuthenticated ? children : null;
 };

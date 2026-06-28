@@ -1,78 +1,110 @@
 const mongoose = require('mongoose');
-const bcryptjs = require('bcryptjs');
+const bcrypt = require('bcryptjs');
 
-const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true,
-    match: /.+\@.+\..+/
-  },
-  password: {
-    type: String,
-    required: true,
-    minlength: 6,
-    select: false
-  },
-  role: {
-    type: String,
-    enum: ['patient', 'doctor', 'admin'],
-    default: 'patient'
-  },
-  phone: {
-    type: String,
-    default: null
-  },
-  specialization: {
-    type: String,
-    default: null // Applicable for doctors
-  },
-  bio: {
-    type: String,
-    default: null
-  },
-  profilePicture: {
-    type: String,
-    default: null
-  },
-  isActive: {
-    type: Boolean,
-    default: true
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
-  }
-});
+const normalizeEmail = (email) => (email || '').toLowerCase().trim();
+const memoryUsers = new Map();
+const isDatabaseConnected = () => mongoose.connection.readyState === 1;
 
-// Hash password before saving
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) {
-    return next();
+const userSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true, trim: true },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    password: { type: String, required: true },
+    role: { type: String, enum: ['patient', 'doctor', 'admin'], default: 'patient' },
+    phone: String,
+    specialization: String,
+    bio: String,
+    profilePicture: String,
+    isActive: { type: Boolean, default: true },
+  },
+  { timestamps: true }
+);
+
+userSchema.statics.createUser = async function (data) {
+  if (!isDatabaseConnected()) {
+    const email = normalizeEmail(data.email);
+    if (memoryUsers.has(email)) {
+      const error = new Error('User already exists with this email');
+      error.code = 11000;
+      throw error;
+    }
+
+    const hashedPassword = await bcrypt.hash(data.password, 10);
+    const user = {
+      _id: new mongoose.Types.ObjectId().toString(),
+      id: new mongoose.Types.ObjectId().toString(),
+      name: data.name,
+      email,
+      password: hashedPassword,
+      role: data.role || 'patient',
+      phone: data.phone,
+      specialization: data.specialization,
+      bio: data.bio,
+      profilePicture: data.profilePicture,
+      isActive: data.isActive !== undefined ? data.isActive : true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    memoryUsers.set(email, user);
+    return user;
   }
 
-  try {
-    const salt = await bcryptjs.genSalt(10);
-    this.password = await bcryptjs.hash(this.password, salt);
-    next();
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Compare password method
-userSchema.methods.comparePassword = async function (enteredPassword) {
-  return await bcryptjs.compare(enteredPassword, this.password);
+  const hashedPassword = await bcrypt.hash(data.password, 10);
+  return this.create({
+    name: data.name,
+    email: data.email,
+    password: hashedPassword,
+    role: data.role || 'patient',
+    phone: data.phone,
+    specialization: data.specialization,
+    bio: data.bio,
+    profilePicture: data.profilePicture,
+    isActive: data.isActive !== undefined ? data.isActive : true,
+  });
 };
 
-module.exports = mongoose.model('User', userSchema);
+userSchema.statics.findByEmail = async function (email) {
+  if (!isDatabaseConnected()) {
+    return memoryUsers.get(normalizeEmail(email)) || null;
+  }
+
+  return this.findOne({ email: normalizeEmail(email) });
+};
+
+userSchema.statics.getDoctors = async function () {
+  if (!isDatabaseConnected()) {
+    return Array.from(memoryUsers.values())
+      .filter((user) => user.role === 'doctor' && user.isActive !== false)
+      .map((user) => ({ ...user }));
+  }
+
+  return this.find({ role: 'doctor', isActive: true }).select('-password');
+};
+
+userSchema.statics.comparePassword = async function (plainPassword, hashedPassword) {
+  return bcrypt.compare(plainPassword, hashedPassword);
+};
+
+userSchema.statics.updateById = async function (id, updates) {
+  if (!isDatabaseConnected()) {
+    const user = Array.from(memoryUsers.values()).find((entry) => entry._id === id || entry.id === id);
+    if (!user) {
+      return null;
+    }
+
+    Object.assign(user, updates, { updatedAt: new Date() });
+    if (updates.email) {
+      memoryUsers.delete(normalizeEmail(user.email));
+      user.email = normalizeEmail(updates.email);
+    }
+    memoryUsers.set(normalizeEmail(user.email), user);
+    return user;
+  }
+
+  return this.findByIdAndUpdate(id, updates, { new: true, runValidators: true });
+};
+
+const User = mongoose.model('User', userSchema);
+
+module.exports = User;
