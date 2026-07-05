@@ -1,4 +1,4 @@
-# Online Appointment Booking System
+# Medoso - Online Appointment Booking System
 
 A full-stack web application for managing appointments with support for multiple user roles (patients and doctors), availability management, and reminder systems.
 
@@ -7,12 +7,14 @@ A full-stack web application for managing appointments with support for multiple
 - [Features](#features)
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
-- [Installation](#installation)
+- [Quick Start](#quick-start)
 - [Configuration](#configuration)
 - [Running the Application](#running-the-application)
 - [API Endpoints](#api-endpoints)
 - [Database Schema](#database-schema)
 - [Development Guidelines](#development-guidelines)
+- [Deployment](#deployment)
+- [Troubleshooting](#troubleshooting)
 
 ## Features
 
@@ -40,16 +42,10 @@ A full-stack web application for managing appointments with support for multiple
 ### Backend
 - **Runtime**: Node.js
 - **Framework**: Express.js
-### Database
-- **Primary**: Supabase (PostgreSQL)
-- **Alternative**: MongoDB with Mongoose ODM
+- **Database**: MongoDB (Mongoose ODM)
 - **Authentication**: JWT (JSON Web Tokens)
 - **Security**: bcryptjs for password hashing
 - **Validation**: express-validator
-   - `REACT_APP_API_URL` — URL to your backend API (e.g. `https://my-api.example.com/api`).
-
-   - `NETLIFY_AUTH_TOKEN` — a personal access token from Netlify (User settings → Applications → Personal access tokens).
-   - `NETLIFY_SITE_ID` — your Netlify Site ID (Site settings → Site information).
 
 ### Frontend
 - **Library**: React 18+
@@ -57,6 +53,7 @@ A full-stack web application for managing appointments with support for multiple
 - **HTTP Client**: Axios
 - **Date Handling**: date-fns
 - **Build Tool**: Create React App
+- **Dev Proxy**: http-proxy-middleware
 
 ## Project Structure
 
@@ -66,11 +63,6 @@ Online Appointment Booking System/
 │   ├── models/
 │   │   ├── User.js           # User schema (patient, doctor, admin)
 │   │   ├── Appointment.js    # Appointment schema
-
-### Single-page app routing on Netlify
-
-The included `netlify.toml` ensures SPA routing works by redirecting all unmatched routes to `index.html`.
-
 │   │   ├── Availability.js   # Doctor availability schema
 │   │   └── Reminder.js       # Reminder schema
 │   ├── controllers/
@@ -85,9 +77,16 @@ The included `netlify.toml` ensures SPA routing works by redirecting all unmatch
 │   │   └── reminderRoutes.js
 │   ├── middleware/
 │   │   └── auth.js           # JWT authentication middleware
+│   ├── utils/
+│   │   ├── apiFormat.js      # Response formatting utilities
+│   │   ├── appointmentToken.js # Appointment token generation
+│   │   └── password.js       # Password validation utilities
+│   ├── tests/
+│   │   └── user-fallback.test.js # Unit tests
 │   ├── server.js             # Main server file
+│   ├── db.js                 # Database connection
 │   ├── package.json
-│   └── .env.example
+│   └── .env.example          # Environment template
 │
 ├── frontend/
 │   ├── public/
@@ -95,152 +94,121 @@ The included `netlify.toml` ensures SPA routing works by redirecting all unmatch
 │   ├── src/
 │   │   ├── components/
 │   │   │   ├── Navbar.js          # Navigation component
-│   │   │   └── ProtectedRoute.js  # Protected route wrapper
+│   │   │   ├── ProtectedRoute.js  # Protected route wrapper
 │   │   ├── pages/
+│   │   │   ├── Home.js            # Landing page
 │   │   │   ├── Login.js           # Login page
 │   │   │   ├── Register.js        # Registration page
-│   │   │   ├── Dashboard.js       # User dashboard
-│   │   │   └── BookAppointment.js # Appointment booking page
+│   │   │   ├── Dashboard.js       # Patient dashboard
+│   │   │   ├── DoctorDashboard.js # Doctor dashboard
+│   │   │   ├── BookAppointment.js # Appointment booking page
+│   │   │   └── ManageAvailability.js # Doctor availability management
+│   │   ├── utils/
+│   │   │   └── appointmentHelpers.js # Date/time/status formatting
 │   │   ├── services/
 │   │   │   └── api.js            # API client
+│   │   ├── styles/
+│   │   │   ├── index.css         # Global design system
+│   │   │   ├── App.css           # Shared layout components
+│   │   │   ├── Auth.css          # Authentication pages
+│   │   │   ├── Home.css          # Landing page
+│   │   │   ├── DoctorViews.css   # Availability management
+│   │   │   └── DoctorDashboard.css # Doctor dashboard
 │   │   ├── App.js                # Main app component
-│   │   ├── App.css               # Styling
+│   │   ├── App.css               # App-level styles
 │   │   ├── index.js              # React entry point
-│   │   └── index.css             # Global styles
+│   │   ├── index.css             # Global styles
+│   │   └── setupProxy.js         # Development proxy to backend
 │   ├── package.json
-│   └── .env
+│   ├── .env.example              # Environment template
+│   └── vercel.json               # Deployment config
 │
 ├── .github/
 │   └── copilot-instructions.md  # Project guidelines
 ├── .gitignore
+├── package.json                  # Root orchestrator scripts
 └── README.md
 ```
 
-## Installation
+## Quick Start
 
 ### Prerequisites
-- Node.js (v14 or higher)
+- Node.js (v16 or higher)
 - MongoDB (local or cloud instance)
 - npm or yarn
 
-### Backend Setup
+### Installation
 
-1. Navigate to the backend directory:
-   ```bash
-   cd backend
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Set up Supabase:
-   - Go to https://supabase.com and create a free account
-   - Create a new project
-   - Go to Settings > API to get your Project URL and anon key
-   - Go to SQL Editor and run the schema from `backend/database_schema.sql`
-
-4. Create a `.env` file from the example:
-   ```bash
-   cp .env.example .env
-   ```
-
-5. Update `.env` with your Supabase credentials
-
-### Frontend Setup
-
-1. Navigate to the frontend directory:
-   ```bash
-   cd frontend
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. The `.env` file is already configured with default API URL
+```bash
+# Install all dependencies for backend and frontend
+npm run install:all
+```
 
 ## Configuration
 
 ### Backend Environment Variables
 
-Create a `.env` file in the backend directory with the following variables:
+Copy `.env.example` to `.env` in the backend directory:
 
 ```env
-# Supabase Configuration
-SUPABASE_URL=your-supabase-project-url
-SUPABASE_ANON_KEY=your-supabase-anon-key
-
-# Server Configuration
+MONGODB_URI=mongodb+srv://<user>:<password>@cluster0.mongodb.net/medoso?retryWrites=true&w=majority
 PORT=5000
 NODE_ENV=development
-
-# JWT Configuration
 JWT_SECRET=your_very_secure_secret_key_change_this
 JWT_EXPIRE=7d
-
-# Email Configuration (for reminders)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your_email@gmail.com
-SMTP_PASS=your_app_password
-
-# Frontend URL
 FRONTEND_URL=http://localhost:3000
 ```
 
 ### Frontend Environment Variables
 
-The `.env` file in the frontend directory:
+The `.env` file in the frontend directory uses relative paths by default:
 
 ```env
-REACT_APP_API_URL=http://localhost:5000/api
+REACT_APP_API_URL=/api
 ```
+
+This ensures the frontend works both locally (via proxy) and in production.
 
 ## Running the Application
 
-### Start MongoDB
-1. If using local MongoDB, ensure it's running:
-   ```bash
-   # On Windows (if installed as service)
-   net start MongoDB
-   
-   # Or run MongoDB manually
-   mongod
-   ```
+### Local Development with Proxy
 
-2. For cloud MongoDB (Atlas), ensure your connection string is in `.env`
-
-### Start Backend Server
+The recommended way to run the app locally is using the root orchestrator:
 
 ```bash
-cd backend
 npm run dev
 ```
 
-The backend will run on `http://localhost:5000`
+This starts:
+- Backend on `http://localhost:5000`
+- Frontend on `http://localhost:3000`
+- Frontend API requests to `/api/*` are automatically proxied to the backend
 
-### Start Frontend Application
+### Separate Terminals
 
-In a new terminal:
+Alternatively, run in separate terminals:
 
 ```bash
+# Terminal 1: Backend
+cd backend
+npm run dev
+
+# Terminal 2: Frontend
 cd frontend
 npm start
 ```
 
-The frontend will run on `http://localhost:3000`
-
 ## API Endpoints
+
+### Health
+- `GET /api/health` - Server health check
 
 ### Authentication
 - `POST /api/auth/register` - Register new user
 - `POST /api/auth/login` - Login user
 - `GET /api/auth/profile` - Get user profile (Protected)
 - `PUT /api/auth/profile` - Update user profile (Protected)
-- `GET /api/auth/doctors` - Get all active doctors
+- `GET /api/auth/doctors` - Get all active doctors (Protected)
 
 ### Appointments
 - `POST /api/appointments` - Create appointment (Protected)
@@ -253,6 +221,7 @@ The frontend will run on `http://localhost:3000`
 ### Availability
 - `POST /api/availability` - Set doctor availability (Doctor only)
 - `GET /api/availability/:doctorId` - Get doctor availability
+- `GET /api/availability/my` - Get my availability (Doctor only)
 - `PUT /api/availability/:availabilityId` - Update availability (Doctor only)
 - `DELETE /api/availability/:availabilityId` - Delete availability (Doctor only)
 
@@ -299,6 +268,8 @@ The frontend will run on `http://localhost:3000`
   reminderSent: Boolean,
   meetingLink: String,
   location: String,
+  token: String (unique),
+  bookedAt: Date,
   createdAt: Date,
   updatedAt: Date
 }
@@ -372,15 +343,19 @@ The frontend will run on `http://localhost:3000`
 - Use HTTPS in production
 - Implement rate limiting
 
-## Next Steps
+## Deployment
 
-1. **Email Notifications**: Implement email service for appointment reminders
-2. **Video Consultations**: Add support for online consultations with video links
-3. **Payment Integration**: Add payment processing for paid consultations
-4. **Analytics Dashboard**: Add analytics for doctors and admins
-5. **Mobile App**: Develop mobile applications for iOS and Android
-6. **Calendar Integration**: Sync with Google Calendar and Outlook
-7. **Notification System**: Implement real-time notifications using WebSockets
+### Netlify (Frontend)
+- Connect repository to Netlify
+- Set build command: `npm run build --prefix frontend`
+- Set publish directory: `frontend/build`
+- Set environment variable: `REACT_APP_API_URL=https://your-backend-url.com/api`
+
+### Render / Railway (Backend)
+- Connect repository
+- Set root directory: `backend`
+- Set start command: `npm start`
+- Set environment variables from `.env.example`
 
 ## Troubleshooting
 

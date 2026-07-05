@@ -10,7 +10,6 @@ import {
   getPatientName,
   getAppointmentDate,
   getStartTime,
-  getEndTime,
 } from '../utils/appointmentHelpers';
 
 const DoctorDashboard = () => {
