@@ -53,7 +53,6 @@ A full-stack web application for managing appointments with support for multiple
 - **HTTP Client**: Axios
 - **Date Handling**: date-fns
 - **Build Tool**: Create React App
-- **Dev Proxy**: http-proxy-middleware
 
 ## Project Structure
 
@@ -117,9 +116,10 @@ Online Appointment Booking System/
 │   │   ├── App.js                # Main app component
 │   │   ├── App.css               # App-level styles
 │   │   ├── index.js              # React entry point
-│   │   ├── index.css             # Global styles
-│   │   └── setupProxy.js         # Development proxy to backend
+│   │   └── index.css             # Global styles
 │   ├── package.json
+│   ├── .env                      # Local dev API URL
+│   ├── .env.production           # Production API URL
 │   ├── .env.example              # Environment template
 │   └── vercel.json               # Deployment config
 │
@@ -161,17 +161,21 @@ FRONTEND_URL=http://localhost:3000
 
 ### Frontend Environment Variables
 
-The `.env` file in the frontend directory uses relative paths by default:
+The frontend uses CRA environment files to switch between local and production API URLs:
 
 ```env
-REACT_APP_API_URL=/api
+# .env (local development)
+REACT_APP_API_URL=http://localhost:5000/api
+
+# .env.production (production build)
+REACT_APP_API_URL=https://your-backend-url.com/api
 ```
 
-This ensures the frontend works both locally (via proxy) and in production.
+> CRA automatically loads `.env.production` when you run `npm run build`.
 
 ## Running the Application
 
-### Local Development with Proxy
+### Local Development
 
 The recommended way to run the app locally is using the root orchestrator:
 
@@ -182,7 +186,7 @@ npm run dev
 This starts:
 - Backend on `http://localhost:5000`
 - Frontend on `http://localhost:3000`
-- Frontend API requests to `/api/*` are automatically proxied to the backend
+- The frontend talks directly to the backend via `http://localhost:5000/api`
 
 ### Separate Terminals
 
@@ -197,6 +201,30 @@ npm run dev
 cd frontend
 npm start
 ```
+
+### Production Build
+
+Before pushing to production, build and verify locally:
+
+```bash
+npm run build
+```
+
+This creates a production build in `frontend/build` using the API URL from `.env.production`.
+
+## Testing Before Production Push
+
+1. **Local API test**: Ensure backend is running on port 5000 and test endpoints directly.
+2. **Build test**: Run `npm run build` to verify the frontend compiles without errors.
+3. **Env verification**: Confirm `.env.production` contains the correct production API URL (not `localhost`).
+4. **Smoke test**: Open `frontend/build/index.html` in a browser (or serve the build folder) to verify pages load.
+5. **Git check**: Run `git status` to ensure no secret files (`.env`) are staged.
+6. **Commit and push**:
+   ```bash
+   git add -A
+   git commit -m "your message"
+   git push origin main
+ ```
 
 ## API Endpoints
 
