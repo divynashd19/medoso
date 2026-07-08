@@ -7,10 +7,39 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors({
-  origin: process.env.FRONTEND_URL || true,
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  process.env.CORS_ORIGIN,
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'https://agent-6a4a54bbecb69e8fc66fa485--medoso.netlify.app',
+].filter(Boolean);
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    const isAllowed = allowedOrigins.includes(origin) ||
+      /https:\/\/.*\.netlify\.app$/i.test(origin) ||
+      /https:\/\/.*\.vercel\.app$/i.test(origin) ||
+      /http:\/\/localhost(:\d+)?$/i.test(origin) ||
+      /http:\/\/127\.0\.0\.1(:\d+)?$/i.test(origin);
+
+    if (isAllowed) {
+      return callback(null, true);
+    }
+
+    return callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
-}));
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
