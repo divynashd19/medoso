@@ -4,7 +4,7 @@ import { authAPI } from '../services/api';
 import '../styles/Auth.css';
 
 const Login = () => {
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [formData, setFormData] = useState({ phone: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -57,13 +57,15 @@ const Login = () => {
           {error && <div className="alert alert-error">{error}</div>}
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label>Email address</label>
+              <label>Phone number</label>
               <input
-                type="email"
-                name="email"
-                value={formData.email}
+                type="tel"
+                name="phone"
+                value={formData.phone}
                 onChange={handleChange}
-                placeholder="you@example.com"
+                placeholder="98765 43210"
+                autoComplete="tel"
+                inputMode="tel"
                 required
               />
             </div>

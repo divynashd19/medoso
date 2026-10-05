@@ -13,10 +13,14 @@ const signToken = (user) =>
 // Register User
 exports.register = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, phone, password, role } = req.body;
 
-    if (!name || !email || !password) {
-      return res.status(400).json({ message: 'Name, email, and password are required' });
+    if (!name || !email || !phone || !password) {
+      return res.status(400).json({ message: 'Name, email, phone number, and password are required' });
+    }
+
+    if (!User.isValidPhone(phone)) {
+      return res.status(400).json({ message: 'Please enter a valid phone number' });
     }
 
     const passwordValidation = validatePassword(password);
@@ -24,12 +28,15 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: passwordValidation.message });
     }
 
-    const existingUser = await User.findByEmail(email);
-    if (existingUser) {
+    if (await User.findByEmail(email)) {
       return res.status(400).json({ message: 'User already exists with this email' });
     }
 
-    const user = await User.createUser({ name, email, password, role });
+    if (await User.findByPhone(phone)) {
+      return res.status(400).json({ message: 'User already exists with this phone number' });
+    }
+
+    const user = await User.createUser({ name, email, phone, password, role });
     const token = signToken(user);
 
     res.status(201).json({
@@ -40,7 +47,7 @@ exports.register = async (req, res) => {
   } catch (error) {
     console.error('Registration error:', error.message);
     if (error.code === 11000) {
-      return res.status(400).json({ message: 'User already exists with this email' });
+      return res.status(400).json({ message: 'User already exists with this email or phone number' });
     }
     res.status(500).json({ message: 'Registration failed', error: error.message });
   }
@@ -49,20 +56,20 @@ exports.register = async (req, res) => {
 // Login User
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { phone, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ message: 'Email and password required' });
+    if (!phone || !password) {
+      return res.status(400).json({ message: 'Phone number and password required' });
     }
 
-    const user = await User.findByEmail(email);
+    const user = await User.findByPhone(phone);
     if (!user) {
-      return res.status(401).json({ message: 'Invalid email or password' });
+      return res.status(401).json({ message: 'Invalid phone number or password' });
     }
 
     const isMatch = await User.comparePassword(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid email or password' });
+      return res.status(401).json({ message: 'Invalid phone number or password' });
     }
 
     const token = signToken(user);
@@ -95,8 +102,23 @@ exports.getProfile = async (req, res) => {
 // Update User Profile
 exports.updateProfile = async (req, res) => {
   try {
-    const { name, phone, specialization, bio } = req.body;
-    const user = await User.updateById(req.userId, { name, phone, specialization, bio });
+    const { name, specialization, bio } = req.body;
+    const updates = { name, specialization, bio };
+
+    // Phone is the login identifier, so it must stay valid and unique.
+    if (req.body.phone !== undefined) {
+      if (!User.isValidPhone(req.body.phone)) {
+        return res.status(400).json({ message: 'Please enter a valid phone number' });
+      }
+      const phone = User.normalizePhone(req.body.phone);
+      const owner = await User.findByPhone(phone);
+      if (owner && toId(owner) !== String(req.userId)) {
+        return res.status(400).json({ message: 'This phone number is already in use' });
+      }
+      updates.phone = phone;
+    }
+
+    const user = await User.updateById(req.userId, updates);
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -104,6 +126,9 @@ exports.updateProfile = async (req, res) => {
 
     res.json({ message: 'Profile updated successfully', user: formatUser(user) });
   } catch (error) {
+    if (error.code === 11000) {
+      return res.status(400).json({ message: 'This phone number is already in use' });
+    }
     res.status(500).json({ message: 'Failed to update profile', error: error.message });
   }
 };

@@ -7,6 +7,7 @@ const Register = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phone: '',
     password: '',
     role: 'patient',
   });
@@ -91,6 +92,20 @@ const Register = () => {
                 placeholder="you@example.com"
                 required
               />
+            </div>
+            <div className="form-group">
+              <label>Phone number</label>
+              <input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                placeholder="98765 43210"
+                autoComplete="tel"
+                inputMode="tel"
+                required
+              />
+              <small className="password-hint">You'll use this number to sign in.</small>
             </div>
             <div className="form-group">
               <label>Password</label>
