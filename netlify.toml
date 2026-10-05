@@ -1,9 +1,20 @@
 [build]
   publish = "frontend/build"
-  command = "npm run build --prefix frontend"
+  command = "npm install --prefix backend && npm install --prefix frontend && npm run build --prefix frontend"
+  functions = "netlify/functions"
 
+[build.environment]
+  NODE_VERSION = "20"
+
+# Backend: Express app served as a Netlify Function on the same origin.
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+  force = true
+
+# Frontend: single-page app routing.
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-  force = true

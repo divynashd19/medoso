@@ -1,8 +1,9 @@
 name: Deploy Frontend to Netlify
 
+# Manual only: Netlify builds the site (frontend + API function) from GitHub on
+# push. A push-triggered frontend-only deploy here would drop the API function.
 on:
-  push:
-    branches: [ "main", "master" ]
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:

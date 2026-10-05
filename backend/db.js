@@ -16,6 +16,13 @@ const connectDB = async () => {
     }
   }
 
+  // Serverless hosts have no local MongoDB, and waiting on it would eat the
+  // function's time budget.
+  if (process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+    console.warn('MongoDB not available; authentication will use the built-in local fallback.');
+    return;
+  }
+
   try {
     await mongoose.connect('mongodb://127.0.0.1:27017/appointment_booking', options);
     console.log('MongoDB connected successfully');
